@@ -181,7 +181,11 @@ $ chisel server --help
 
     --ldap-config, a path to a file containing the ldap authentication
 		configuration.
+    here is an example of an ldap-config file
+
+    { "BindDN": "CN=ldapUser,OU=Users,OU=example,DC=EXAMPLE,DC=COM", "BindPassword": "ldapUserPassword", "Url": "example.com:636", "BaseDN": "OU=Users,OU=example,DC=EXAMPLE,DC=COM", "Filter": "(&(objectClass=person)(objectClass=user))", "IDMapTo": "sAMAccountName", "CA": "", "Insecure": true }
     
+
     --pid Generate pid file in current working directory
 
     -v, Enable verbose logging

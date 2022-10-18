@@ -185,7 +185,7 @@ func server(args []string) {
 	flags.StringVar(&config.TLS.Cert, "tls-cert", "", "")
 	flags.Var(multiFlag{&config.TLS.Domains}, "tls-domain", "")
 	flags.StringVar(&config.TLS.CA, "tls-ca", "", "")
-	flags.StringVar(&config.LdapConfigFile,"ldap-config","","")
+	flags.StringVar(&config.LdapConfigFile, "ldap-config", "", "")
 
 	host := flags.String("host", "", "")
 	p := flags.String("p", "", "")

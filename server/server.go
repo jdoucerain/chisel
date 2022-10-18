@@ -22,16 +22,16 @@ import (
 
 // Config is the configuration for the chisel service
 type Config struct {
-	KeySeed   string
-	AuthFile  string
-	Auth      string
-	Proxy     string
-	Socks5    bool
-	Reverse   bool
-	KeepAlive time.Duration
-	TLS       TLSConfig
-	LdapConfigFile	string
-	LdapConfig settings.LdapConfig
+	KeySeed        string
+	AuthFile       string
+	Auth           string
+	Proxy          string
+	Socks5         bool
+	Reverse        bool
+	KeepAlive      time.Duration
+	TLS            TLSConfig
+	LdapConfigFile string
+	LdapConfig     settings.LdapConfig
 }
 
 // Server respresent a chisel service
@@ -117,7 +117,7 @@ func NewServer(c *Config) (*Server, error) {
 	}
 	// ldap authentication
 	if c.LdapConfigFile != "" {
-		if c.LdapConfig,err = server.LdapParseConfig(c.LdapConfigFile); err != nil {
+		if c.LdapConfig, err = server.LdapParseConfig(c.LdapConfigFile); err != nil {
 			return nil, err
 		}
 	}
@@ -185,9 +185,52 @@ func (s *Server) authUser(c ssh.ConnMetadata, password []byte) (*ssh.Permissions
 	// check the user exists and has matching password
 	n := c.User()
 	user, found := s.users.Get(n)
-	if !found || ( user.Pass != string(password) && s.config.LdapConfigFile == "" ) || ( s.config.LdapConfigFile != "" && found && settings.LdapAuthUser(user,password,s.config.LdapConfig) != nil) {
-		s.Debugf("Login failed for user: %s", n)
-		return nil, errors.New("Invalid authentication for username: %s")
+	if (found) {
+  // User found
+
+	  if (s.config.LdapConfigFile == "") {
+		  // LDAP disabled
+
+		  if (string(password) == "") {
+			  // Empty password
+
+			  s.Debugf("Empty passwords are not allowed. User = %s", n)
+			  return nil, errors.New("Invalid authentication for username: %s")
+		  } else if (user.Pass == string(password)) {
+			  // Password authentication successful.
+
+		  } else {
+			  // Password authentication failed.
+
+			  s.Debugf("Could not authenticate user: %s", n)
+			  return nil, errors.New("Invalid authentication for username: %s")
+		  }
+	  } else {
+	  // LDAP enabled
+
+		  if (string(password) == "") {
+			  // Empty password
+
+			  s.Debugf("Empty passwords are not allowed. User = %s", n)
+			  return nil, errors.New("Invalid authentication for username: %s")
+		  } else if (user.Pass == string(password)) {
+			  // Password authentication successful.
+
+		  } else if (settings.LdapAuthUser(user,password,s.config.LdapConfig) == nil) {
+			  // LDAP authentication successful.
+
+		  } else {
+			  // Password authentication & LDAP authentication failed.
+
+			  s.Debugf("Could not authenticate user: %s", n)
+			  return nil, errors.New("Invalid authentication for username: %s")
+		  }
+	  }
+	} else {
+    // User not found
+
+    s.Debugf("User not found: %s", n)
+    return nil, errors.New("Invalid authentication for username: %s")
 	}
 	// insert the user session map
 	// TODO this should probably have a lock on it given the map isn't thread-safe
@@ -225,7 +268,7 @@ func (s *Server) ResetUsers(users []*settings.User) {
 }
 
 // LdapParseConfig is validating the given ldap config
-func (s *Server) LdapParseConfig(LdapConfigFile string) (settings.LdapConfig,error) {
-	ldapConfig,err := settings.ParseConfigFile(LdapConfigFile)
-	return ldapConfig,err
+func (s *Server) LdapParseConfig(LdapConfigFile string) (settings.LdapConfig, error) {
+	ldapConfig, err := settings.ParseConfigFile(LdapConfigFile)
+	return ldapConfig, err
 }
