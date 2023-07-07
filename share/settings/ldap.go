@@ -11,8 +11,8 @@ import (
 	"github.com/go-ldap/ldap/v3"
 )
 
-//LdapConfig enables LDAP auth
-type LdapConfig struct {
+//LDAPConfig enables LDAP auth
+type LDAPConfig struct {
 	BindDN       string `json:"BindDN"`
 	BindPassword string `json:"BindPassword"`
 	Url          string `json:"Url"`
@@ -23,12 +23,12 @@ type LdapConfig struct {
 	Insecure     bool   `json:"Insecure"`
 }
 
-// parse the Ldap config file
-func ParseConfigFile(Configfile string) (LdapConfig, error) {
-	var ldapConfig LdapConfig
+// parse the LDAP config file
+func ParseConfigFile(Configfile string) (LDAPConfig, error) {
+	var ldapConfig LDAPConfig
 	file, err := ioutil.ReadFile(Configfile)
 	if err != nil {
-		return ldapConfig, fmt.Errorf("Ldap config file error")
+		return ldapConfig, fmt.Errorf("LDAP config file error")
 	}
 	err = json.Unmarshal([]byte(file), &ldapConfig)
 	if err != nil {
@@ -38,16 +38,16 @@ func ParseConfigFile(Configfile string) (LdapConfig, error) {
 }
 
 // authenticate a user using ldap credentials
-func LdapAuthUser(user *User, password []byte, ldapconfig LdapConfig) error {
+func LDAPAuthUser(user *User, password []byte, ldapconfig LDAPConfig) error {
 	log.Printf("User %s to be authenticated in LDAP", user.Name)
-	l, err := ConnectTLS(ldapconfig)
+	l, err := connectTLS(ldapconfig)
 	if err != nil {
 		log.Printf("Error occured during TLS connection to %s", ldapconfig.Url)
 		return fmt.Errorf("Error occured during TLS connection to %s", ldapconfig.Url)
 	}
 	defer l.Close()
 	// Normal Bind and Search
-	result, err := BindAndSearch(l, ldapconfig, user)
+	result, err := bindAndSearch(l, ldapconfig, user)
 	if err != nil {
 		log.Printf("User %s not found in LDAP", user.Name)
 		return fmt.Errorf("User %s not found in LDAP", user.Name)
@@ -68,8 +68,8 @@ func LdapAuthUser(user *User, password []byte, ldapconfig LdapConfig) error {
 	return nil
 }
 
-// Ldap Connection with TLS
-func ConnectTLS(ldapconfig LdapConfig) (*ldap.Conn, error) {
+// LDAP Connection with TLS
+func connectTLS(ldapconfig LDAPConfig) (*ldap.Conn, error) {
 	var tlsConf *tls.Config
 
 	if ldapconfig.Insecure {
@@ -81,8 +81,8 @@ func ConnectTLS(ldapconfig LdapConfig) (*ldap.Conn, error) {
 		certpool := x509.NewCertPool()
 		CAfile, err := ioutil.ReadFile(ldapconfig.CA)
 		if err != nil {
-			log.Printf("Ldap CA file error")
-			return nil, fmt.Errorf("Ldap CA file error")
+			log.Printf("LDAP CA file error")
+			return nil, fmt.Errorf("LDAP CA file error")
 		}
 		certpool.AppendCertsFromPEM([]byte(CAfile))
 		tlsConf = &tls.Config{RootCAs: certpool}
@@ -99,7 +99,7 @@ func ConnectTLS(ldapconfig LdapConfig) (*ldap.Conn, error) {
 }
 
 // Normal Bind and Search
-func BindAndSearch(l *ldap.Conn, ldapconfig LdapConfig, user *User) (*ldap.SearchResult, error) {
+func bindAndSearch(l *ldap.Conn, ldapconfig LDAPConfig, user *User) (*ldap.SearchResult, error) {
 	var filter string
 	l.Bind(ldapconfig.BindDN, ldapconfig.BindPassword)
 	if ldapconfig.Filter != "" {
