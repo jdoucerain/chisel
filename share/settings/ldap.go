@@ -113,7 +113,7 @@ func bindAndSearch(l *ldap.Conn, ldapconfig LDAPConfig, user *User) (*ldap.Searc
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		0,
-		0,
+		5,
 		false,
 		filter,
 		[]string{"dn"},
