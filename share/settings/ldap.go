@@ -119,6 +119,8 @@ func bindAndSearch(l *ldap.Conn, ldapconfig LDAPConfig, user *User) (*ldap.Searc
 		[]string{"dn"},
 		nil,
 	)
+	// timeout set to 2s for the request
+	l.SetTimeout(2000000000)
 	result, err := l.Search(searchReq)
 	if err != nil {
 		log.Printf("Search Error: %s", err)
